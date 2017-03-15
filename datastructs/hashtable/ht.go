@@ -1,8 +1,8 @@
 package ht
 
 import (
-	"../linkedlist/linkedlist"
-	"errors"
+	ll "../linkedlist"
+	_ "errors"
 	"hash/fnv"
 )
 
@@ -31,7 +31,7 @@ import (
 type HashTable struct {
 	num_buckets  uint32
 	num_elements uint32
-	buckets      []*LinkedList
+	buckets      []*ll.LinkedList
 }
 
 type HTKeyValue struct {
@@ -39,7 +39,16 @@ type HTKeyValue struct {
 	val interface{}
 }
 
-func AllocateHashTable(uint32 num_buckets) *HashTable {
+func CreateStringKV(str string) *HTKeyValue {
+
+	ret := new(HTKeyValue)
+	ret.key = FNVHash32(str)
+	ret.val = str
+
+	return ret
+}
+
+func AllocateHashTable(num_buckets uint32) *HashTable {
 	if num_buckets == 0 {
 		return nil
 	}
@@ -47,10 +56,10 @@ func AllocateHashTable(uint32 num_buckets) *HashTable {
 	ht := new(HashTable)
 	ht.num_buckets = num_buckets
 	ht.num_elements = 0
-	ht.buckets = make([]*LinkedList, num_buckets)
+	ht.buckets = make([]*ll.LinkedList, num_buckets)
 
-	for i := num_buckets - 1; i >= 0; i-- {
-		ht.buckets[i] = AllocateLinkedList()
+	for i := uint32(0); i < num_buckets; i++ {
+		ht.buckets[i] = ll.AllocateLinkedList()
 	}
 
 	return ht
@@ -79,7 +88,7 @@ func FNVHashInt32(hashme uint32) uint32 {
 // insert success return true
 // HTKeyValue return val when there is a same hash key
 // and alternate it with this inserted one
-func (h *HashTable) Insert(kv HTKeyValue) (bool, *HTKeyValue) {
+func (h *HashTable) InsertHT(kv *HTKeyValue) (bool, *HTKeyValue) {
 	if h == nil {
 		return false, nil
 	}
@@ -90,7 +99,7 @@ func (h *HashTable) Insert(kv HTKeyValue) (bool, *HTKeyValue) {
 	// situation 3
 	// 1. empty
 	if insertChain.Len() == 0 {
-		insertChain.Push(&kv)
+		insertChain.Push(kv)
 
 		h.num_elements++
 
@@ -100,15 +109,15 @@ func (h *HashTable) Insert(kv HTKeyValue) (bool, *HTKeyValue) {
 	lliter, _ := insertChain.LLMakeIterator()
 
 	// 2. same key collison
-	if right, oldkv := BucketHasKey(ll_iter, kv.key); right == true {
+	if right, oldkv := BucketHasKey(lliter, kv.key); right == true {
 
-		ll_iter.LLIteratorDelete()
-		insertChain.Append(&kv)
+		lliter.LLIteratorDelete()
+		insertChain.Append(kv)
 		h.num_elements++
 
 		return true, oldkv
 	} else { // 3. insert literally
-		insertChain.Append(&kv)
+		insertChain.Append(kv)
 		h.num_elements++
 
 		return true, nil
@@ -116,18 +125,64 @@ func (h *HashTable) Insert(kv HTKeyValue) (bool, *HTKeyValue) {
 
 }
 
-func BucketHasKey(iter ll_iter, key uint32) (bool, *HTKeyValue) {
+func (h *HashTable) LookupHT(key uint32) (bool, *HTKeyValue) {
+	if h == nil {
+		return false, nil
+	}
+
+	lookupBk := h.HashKeyToBucketNum(key)
+	lookupchain := h.buckets[lookupBk]
+
+	if lookupchain.Len() == 0 {
+		return false, nil
+	}
+
+	lliter, _ := lookupchain.LLMakeIterator()
+	//var retKv *HTKeyValue
+	if right, retKv := BucketHasKey(lliter, key); right == true {
+		return true, retKv
+	}
+
+	return false, nil
+}
+
+func (h *HashTable) RemoveFromHT(key uint32) (bool, *HTKeyValue) {
+	if h == nil {
+		return false, nil
+	}
+
+	rmBk := h.HashKeyToBucketNum(key)
+	rmChain := h.buckets[rmBk]
+
+	if rmChain.IsEmpty() {
+		return false, nil
+	}
+
+	lliter, _ := rmChain.LLMakeIterator()
+	if right, retKv := BucketHasKey(lliter, key); right == true {
+
+		lliter.LLIteratorDelete()
+		h.num_elements--
+
+		return true, retKv
+	}
+
+	return false, nil
+}
+
+func BucketHasKey(iter *ll.LLiter, key uint32) (bool, *HTKeyValue) {
 	for {
 		kv, _ := iter.LLIteratorGetPayload()
-		if kv.key == key {
-			return true, kv
+		actkv, kv_ok := kv.(*HTKeyValue)
+		if kv_ok && actkv.key == key {
+			return true, actkv
 		}
 
-		if !ll_iter.LLIteratorHasNext() {
+		if !iter.LLIteratorHasNext() {
 			break
 		}
 
-		ll_iter.LLIteratorNext()
+		iter.LLIteratorNext()
 	}
 
 	return false, nil

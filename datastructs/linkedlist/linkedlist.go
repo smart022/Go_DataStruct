@@ -142,24 +142,24 @@ func (l *LinkedList) SortLinkedList(ascending bool, compare_fn func(vtype, vtype
 }
 
 //  LinkedList Iterator
-type ll_iter struct {
+type LLiter struct {
 	list *LinkedList
 	node *llnode
 }
 
-func (l *LinkedList) LLMakeIterator() (*ll_iter, error) {
+func (l *LinkedList) LLMakeIterator() (*LLiter, error) {
 	if l.IsEmpty() {
 		return nil, errors.New("Empty LinkedList!")
 	}
 
-	iter := new(ll_iter)
+	iter := new(LLiter)
 	iter.list = l
 	iter.node = l.head
 
 	return iter, nil
 }
 
-func (iter *ll_iter) LLIteratorHasNext() bool {
+func (iter *LLiter) LLIteratorHasNext() bool {
 	if iter.node.next != nil {
 		return true
 	} else {
@@ -167,7 +167,7 @@ func (iter *ll_iter) LLIteratorHasNext() bool {
 	}
 }
 
-func (iter *ll_iter) LLIteratorHasPrev() bool {
+func (iter *LLiter) LLIteratorHasPrev() bool {
 	if iter.node.pre != nil {
 		return true
 	} else {
@@ -175,7 +175,7 @@ func (iter *ll_iter) LLIteratorHasPrev() bool {
 	}
 }
 
-func (iter *ll_iter) LLIteratorNext() error {
+func (iter *LLiter) LLIteratorNext() error {
 	if iter.LLIteratorHasNext() {
 		iter.node = iter.node.next
 		return nil
@@ -185,7 +185,7 @@ func (iter *ll_iter) LLIteratorNext() error {
 
 }
 
-func (iter *ll_iter) LLIteratorPrev() error {
+func (iter *LLiter) LLIteratorPrev() error {
 	if iter.LLIteratorHasPrev() {
 		iter.node = iter.node.pre
 		return nil
@@ -195,7 +195,7 @@ func (iter *ll_iter) LLIteratorPrev() error {
 
 }
 
-func (l *ll_iter) LLIteratorGetPayload() (vtype, error) {
+func (l *LLiter) LLIteratorGetPayload() (vtype, error) {
 	if l == nil || l.node == nil {
 		return nil, errors.New("Invalid Iterator!")
 	}
@@ -212,7 +212,7 @@ func (l *ll_iter) LLIteratorGetPayload() (vtype, error) {
 //
 // - the predecessor of the deleted node, if the iterator was pointing at
 //   the tail.
-func (l *ll_iter) LLIteratorDelete() (vtype, error) {
+func (l *LLiter) LLIteratorDelete() (vtype, error) {
 	if l.list.IsEmpty() || l.node == nil {
 		return nil, errors.New("Invalid for deleting!")
 	}
