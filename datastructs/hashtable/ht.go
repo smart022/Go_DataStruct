@@ -187,3 +187,84 @@ func BucketHasKey(iter *ll.LLiter, key uint32) (bool, *HTKeyValue) {
 
 	return false, nil
 }
+
+// HashTable iterator
+//
+//
+//
+//
+type HTIter struct {
+	is_valid   bool
+	ht         *HashTable
+	bucket_num uint32
+	bucket_it  *ll.LLiter
+}
+
+func (h *HashTable) HTMakeIterator() *HTIter {
+	iter := new(HTIter)
+
+	if h.num_elements == 0 {
+		iter.is_valid = false
+		iter.ht = h
+		iter.bucket_it = nil
+		return iter
+	}
+	iter.is_valid = true
+	iter.ht = h
+
+	for i := uint32(0); i < h.num_buckets; i++ {
+		if (h.buckets[i]).Len() > 0 {
+			iter.bucket_num = i
+			break
+		}
+	}
+
+	iter.bucket_it, _ = (h.buckets[iter.bucket_num]).LLMakeIterator()
+
+	return iter
+}
+
+func (h *HTIter) HTIteratorNext() bool {
+	if !h.is_valid {
+		return false
+	}
+
+	// there is something left in this Bucket
+	if (h.bucket_it).LLIteratorHasNext() {
+		(h.bucket_it).LLIteratorNext()
+		return true
+	}
+
+	// otherwise in other Buckets
+	var i uint32
+
+	for i := h.bucket_num + 1; i < h.ht.num_buckets; i++ {
+		if (h.ht.buckets[i]).Len() > 0 {
+			h.bucket_num = i
+			break
+		}
+	}
+
+	// and we foud the bucket
+	if i < h.ht.num_buckets {
+		h.bucket_it = nil
+		h.bucket_it, _ = (h.ht.buckets[i]).LLMakeIterator()
+
+		return true
+	}
+
+	// else none left, alread at the tail
+	h.is_valid = false
+	h.bucket_it = nil
+
+	return false
+}
+
+func (h *HTIter) HTIteratorPostEnd() bool {
+	if !h.is_valid {
+		return true
+	}
+
+	return false
+
+}
