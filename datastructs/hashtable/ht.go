@@ -3,6 +3,7 @@ package ht
 import (
 	ll "../linkedlist"
 	_ "errors"
+	_ "fmt"
 	"hash/fnv"
 )
 
@@ -238,9 +239,12 @@ func (h *HTIter) HTIteratorNext() bool {
 	// otherwise in other Buckets
 	var i uint32
 
-	for i := h.bucket_num + 1; i < h.ht.num_buckets; i++ {
+	// pay heed to variable's effect domain
+	for i = h.bucket_num + 1; i < h.ht.num_buckets; i++ {
 		if (h.ht.buckets[i]).Len() > 0 {
+
 			h.bucket_num = i
+			//	fmt.Printf("Stop at %v buckets\n", i)
 			break
 		}
 	}
@@ -248,11 +252,18 @@ func (h *HTIter) HTIteratorNext() bool {
 	// and we foud the bucket
 	if i < h.ht.num_buckets {
 		h.bucket_it = nil
-		h.bucket_it, _ = (h.ht.buckets[i]).LLMakeIterator()
-
+		//fmt.Printf("current %v bucket's lenght==%v\n", pos, (h.ht.buckets[pos]).Len())
+		newBkIter, err := (h.ht.buckets[i]).LLMakeIterator()
+		if err != nil {
+			//fmt.Println(err)
+			return false
+		}
+		h.bucket_it = newBkIter
+		//fmt.Printf("MakeIterator!\n")
 		return true
 	}
 
+	//fmt.Printf("Not found!\n")
 	// else none left, alread at the tail
 	h.is_valid = false
 	h.bucket_it = nil
@@ -266,5 +277,40 @@ func (h *HTIter) HTIteratorPostEnd() bool {
 	}
 
 	return false
+
+}
+func (h *HTIter) HTIteratorGet() *HTKeyValue {
+	if !h.is_valid {
+		return nil
+	}
+
+	payload, err := h.bucket_it.LLIteratorGetPayload()
+	if err != nil {
+		return nil
+	}
+	actkv, ok := payload.(*HTKeyValue)
+	if !ok {
+		return nil
+	}
+
+	return actkv
+}
+
+// spare effort to keep HTIter valid
+func (h *HTIter) HTIteratorDelete() (bool, *HTKeyValue) {
+	if !h.is_valid {
+		return false, nil
+	}
+
+	table := h.ht
+	retKv := h.HTIteratorGet()
+
+	h.HTIteratorNext()
+
+	if ok, _ := table.RemoveFromHT(retKv.key); !ok {
+		return false, nil
+	}
+
+	return true, retKv
 
 }

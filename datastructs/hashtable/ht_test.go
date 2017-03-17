@@ -74,7 +74,7 @@ func TestHT(t *testing.T) {
 }
 
 func TestHTIterator(t *testing.T) {
-	var num uint32 = 10
+	var num uint32 = 8
 
 	ht := AllocateHashTable(num)
 
@@ -104,27 +104,70 @@ func TestHTIterator(t *testing.T) {
 		t.Error("HTMakeIterator failure0!!")
 	}
 
+	for a := int(num - 1); a > -1; a-- {
+		fmt.Printf("%v : %v\n", a, iter.ht.buckets[a].Len())
+	}
+	fmt.Printf("sum: %v\n", len(test_str))
+
 	PrintIter(iter)
 
-	//for i := 0; i < len(test_str)/2; i++ {
-	ok := iter.HTIteratorNext()
-	if ok == false {
-		t.Error("HTIteratorNext failure0")
-		//	break
-	}
+	for i := 0; i < len(test_str)-1; i++ {
 
-	//}
-	if iter.is_valid {
-
+		ok := iter.HTIteratorNext()
+		if ok == false {
+			t.Error("HTIteratorNext failure0")
+			//	break
+		}
+		Kv := iter.HTIteratorGet()
+		PrintKv(Kv)
 		PrintIter(iter)
+
 	}
+
+	if iter.bucket_it == nil {
+		t.Error("HTIteratorNext failure1")
+	}
+
+	if ok := iter.HTIteratorNext(); ok == true {
+		t.Error("HTIteratorNext failure2")
+
+	}
+	if iter.is_valid {
+		t.Error("HTIteratorNext failure3")
+	}
+
+	iter1 := ht.HTMakeIterator()
+
+	for i := 0; i < len(test_str); i++ {
+		ok, Kv := iter1.HTIteratorDelete()
+		if !ok {
+			t.Error("HTIteratorDelete failure0")
+		}
+
+		if Kv == nil {
+			t.Error("HTIteratorDelete failure1")
+		}
+
+		PrintKv(Kv)
+	}
+
+	if iter1.is_valid {
+		t.Error("HTIteratorDelete failure2")
+	}
+
 }
 
 func PrintIter(iter *HTIter) {
 	payload, _ := iter.bucket_it.LLIteratorGetPayload()
 	actval0, ok0 := payload.(*HTKeyValue)
-	actval1, ok1 := (actval0.val).(string)
-	if ok0 && ok1 {
-		fmt.Println(actval1)
+	if ok0 {
+		PrintKv(actval0)
+	}
+}
+
+func PrintKv(Kv *HTKeyValue) {
+	actval, ok := (Kv.val).(string)
+	if ok {
+		fmt.Println(actval)
 	}
 }
