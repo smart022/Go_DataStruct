@@ -2,15 +2,24 @@ package dt
 
 import (
 	HT "../../datastructs/hashtable"
-	_ "bufio"
-	"bytes"
-	"errors"
-	"fmt"
-	_ "io"
-	"io/ioutil"
-	_ "os"
-	"unicode"
 )
+
+/*
+*  	DocTable: cotains two HashTables
+*
+*   docID 2 docName                        docName 2 docID
+*  ----------------                         -----------------------------------------------
+*  | Key  |  Val 							| Key                          |     Val
+*  -----------------                        ----------------------------------------------
+*  |  4   | "test_tree/README.MD"           | FNV32("test_tree/README.MD") |      4
+*  ----------------                         ------------------------------------------------
+*  |  1   | "test_tree/bashrc"              | FNV32("test_tree/bashrc")    |      1
+*  --------------------                     ----------------------------------------------
+*   .
+*   .
+*   .
+*
+ */
 
 type DocTable struct {
 	docid2docname *HT.HashTable
@@ -56,4 +65,30 @@ func (d *DocTable) DTRegisterDocName(docname string) uint32 {
 	(d.docname2docid).InsertHT(kv)
 
 	return docid
+}
+
+func (d *DocTable) DTLookupDocName(docname string) uint32 {
+	res := HT.FNVHash32(docname)
+	found, kv := (d.docname2docid).LookupHT(res)
+	if !found {
+		return 0
+	}
+
+	actval, _ := (kv.HTKeyValueGet()).(uint32)
+
+	return actval
+}
+
+func (d *DocTable) DTLookupDocID(docid uint32) string {
+	found, kv := (d.docid2docname).LookupHT(docid)
+	if !found {
+		return ""
+	}
+	actval, _ := (kv.HTKeyValueGet()).(string)
+
+	return actval
+}
+
+func (d *DocTable) DTGetDocidTable() *HT.HashTable {
+	return d.docid2docname
 }
