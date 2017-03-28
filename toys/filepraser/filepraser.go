@@ -13,7 +13,7 @@ import (
 )
 
 /*
-*  this package mainly works for building a HashTable like this
+*  this package mainly works for building a HashTable from a file like this
 *
 *   --------------------------------
 *   | key:          | val:         |
