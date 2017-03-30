@@ -57,9 +57,8 @@ func CreateKV(key uint32, val interface{}) *HTKeyValue {
 	return ret
 }
 
-func (h *HTKeyValue) HTKeyValueGet() interface{} {
-	return h.val
-}
+func (h *HTKeyValue) HTKeyValueGet() interface{} { return h.val }
+func (h *HTKeyValue) HTKeyValueGetKey() uint32   { return h.key }
 
 func AllocateHashTable(num_buckets uint32) *HashTable {
 	if num_buckets == 0 {
