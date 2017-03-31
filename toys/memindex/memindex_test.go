@@ -61,7 +61,8 @@ func TestMDX(t *testing.T) {
 		fmt.Printf("key:%v\n", hkv.HTKeyValueGetKey())
 		htiter.HTIteratorNext()
 	}
-	// mistake in MIADDPostingL
+	///
+	mi.MIShow()
 
 	///////
 	ll := mi.MIProcessQuery(query)

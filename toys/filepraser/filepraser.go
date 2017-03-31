@@ -34,6 +34,9 @@ type WordTimes struct {
 	times uint32
 }
 
+func (w *WordTimes) WTGetWord() string  { return w.word }
+func (w *WordTimes) WTGetTimes() uint32 { return w.times }
+
 // main function: create a new HashTable from a file
 func BuildWordHT(filename string) (*HT.HashTable, error) {
 	if len(filename) == 0 {

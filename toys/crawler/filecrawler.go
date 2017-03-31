@@ -3,17 +3,19 @@ package fc
 import (
 	DT "../doctable"
 	FP "../filepraser"
-	"flag"
+	MI "../memindex"
+	"errors"
+	_ "flag"
 	"fmt"
 	"os"
 	"path/filepath"
 )
 
 // main function, still lack of MemIndex
-func CrawlFileTree(rootdir string) (*DocTable, *MemIndex) {
+func CrawlFileTree(rootdir string) (*DT.DocTable, *MI.MemIndex) {
 	path := rootdir
 	doctable := DT.AllocateDocTable()
-	index := AllocateMemIndex()
+	index := MI.AllocateMemIndex()
 	// walk through the dir
 	err := filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
 		// filter what is not file
@@ -31,24 +33,35 @@ func CrawlFileTree(rootdir string) (*DocTable, *MemIndex) {
 	})
 	if err != nil {
 		fmt.Printf("filepath.Walk() returned %v\n", err)
+		return nil, nil
 	}
+
+	return doctable, index
 }
 
 // helper func
-func HandleFile(path string, dt *DT.Doctable, index *MI.MemIndex) {
+func HandleFile(path string, dt *DT.DocTable, index *MI.MemIndex) error {
 
 	tab, err := FP.BuildWordHT(path)
 	if err != nil {
 		//deal
-		fmt.Println(err)
-		return
+		return err
 	}
 
 	docID := dt.DTRegisterDocName(path)
 
-	it := tab.HTMakeIterator()
-	for {
+	iter := tab.HTMakeIterator()
+	for tab.NumElementsOfHashTable() != 0 {
 		//deal it
+		ok, kv := iter.HTIteratorDelete()
+		if !ok {
+			return errors.New("HTIteratorDelete failure!")
+		}
+
+		wt := (kv.HTKeyValueGet()).(*FP.WordTimes)
+
+		index.MIADDPostingList(wt.WTGetWord(), docID, wt.WTGetTimes())
 	}
 
+	return nil
 }

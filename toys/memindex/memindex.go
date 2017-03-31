@@ -3,7 +3,7 @@ package mdx
 import (
 	HT "../../datastructs/hashtable"
 	LL "../../datastructs/linkedlist"
-	_ "fmt"
+	"fmt"
 )
 
 /*  this package mainly intend to build such a structure: inverted hashtable
@@ -201,4 +201,40 @@ func (mi *MemIndex) MIProcessQuery(query []string) *LL.LinkedList {
 	})
 
 	return retlist
+}
+
+// just for present
+func (mi *MemIndex) MIShow() {
+	iter0 := ((*HT.HashTable)(mi)).HTMakeIterator()
+	if iter0 == nil {
+		fmt.Println("MIShow HTMakeIterator failure")
+		return
+	}
+
+	num0 := int(mi.MINumWordsInMemIndex())
+
+	for i := 0; i < num0; i++ {
+		mikv := iter0.HTIteratorGet()
+
+		wds, _ := (mikv.HTKeyValueGet()).(*WordDocSet)
+
+		fmt.Printf("%s:\n", wds.word)
+
+		iter1 := (wds.docIDs).HTMakeIterator()
+
+		num1 := int((wds.docIDs).NumElementsOfHashTable())
+		for j := 0; j < num1; j++ {
+			dockv := iter1.HTIteratorGet()
+
+			docid := dockv.HTKeyValueGetKey()
+			times, _ := (dockv.HTKeyValueGet()).(uint32)
+
+			fmt.Printf("show up in id-%v for %v times\n", docid, times)
+
+			iter1.HTIteratorNext()
+		}
+		fmt.Println()
+		iter0.HTIteratorNext()
+
+	}
 }
