@@ -3,6 +3,7 @@ package mdx
 import (
 	HT "../../datastructs/hashtable"
 	LL "../../datastructs/linkedlist"
+	_ "fmt"
 )
 
 /*  this package mainly intend to build such a structure: inverted hashtable
@@ -63,6 +64,7 @@ func (mi *MemIndex) MIADDPostingList(word string, docid uint32, times uint32) bo
 
 	wordkey := HT.FNVHash32(word)
 
+	//fmt.Printf("66. word:%s\n", word)
 	found, kv = ((*HT.HashTable)(mi)).LookupHT(wordkey)
 	// the first time this inverted index has seen this word.
 	if !found {
@@ -86,8 +88,11 @@ func (mi *MemIndex) MIADDPostingList(word string, docid uint32, times uint32) bo
 			return false
 		}
 
+		//	fmt.Printf("91.word:%s first found\n\n", word)
+
 		return true
 	} else { // this word has existed
+		//	fmt.Printf("91.word:%s not the first time\n", word)
 		wds, _ = (kv.HTKeyValueGet()).(*WordDocSet)
 	}
 
@@ -98,7 +103,7 @@ func (mi *MemIndex) MIADDPostingList(word string, docid uint32, times uint32) bo
 	}
 
 	newKv := HT.CreateKV(docid, times)
-
+	//fmt.Printf("106. CreateKV:%v -> %v \n\n", docid, times)
 	ok, _ := (wds.docIDs).InsertHT(newKv)
 	if !ok {
 		return false
@@ -188,6 +193,12 @@ func (mi *MemIndex) MIProcessQuery(query []string) *LL.LinkedList {
 	}
 
 	// We may Sort
+	retlist.SortLinkedList(false, func(a, b interface{}) bool {
+		acta, _ := a.(*SearchResult)
+		actb, _ := b.(*SearchResult)
+
+		return acta.rank > actb.rank
+	})
 
 	return retlist
 }

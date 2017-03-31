@@ -107,7 +107,7 @@ func (l *LinkedList) Slice() (vtype, error) {
 }
 
 // compare_fn return true while a > b, else revert
-func (l *LinkedList) SortLinkedList(ascending bool, compare_fn func(vtype, vtype) bool) {
+func (l *LinkedList) SortLinkedList(ascending bool, compare_fn func(interface{}, interface{}) bool) {
 	if l.Len() < 2 {
 		return
 	}
@@ -120,7 +120,8 @@ func (l *LinkedList) SortLinkedList(ascending bool, compare_fn func(vtype, vtype
 		swapped = false
 
 		for curnode.next != nil {
-			var compare_result bool = compare_fn(curnode.val, curnode.next.val)
+
+			var compare_result bool = compare_fn(interface{}(curnode.val), interface{}(curnode.next.val))
 
 			if ascending == false {
 				compare_result = !compare_result

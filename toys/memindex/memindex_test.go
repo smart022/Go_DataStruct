@@ -7,12 +7,6 @@ import (
 	"testing"
 )
 
-type Tstr struct {
-	word  string
-	docid uint32
-	times uint32
-}
-
 func TestMDX(t *testing.T) {
 	mi := AllocateMemIndex()
 
@@ -24,6 +18,9 @@ func TestMDX(t *testing.T) {
 		"chao",
 		"chao",
 		"chao",
+		"chao",
+		"chao",
+		"hao",
 		"hao",
 		"hao",
 		"hao",
@@ -33,19 +30,18 @@ func TestMDX(t *testing.T) {
 		"pao",
 	}
 
-	cot := make([]Tstr, len(test_str))
-
 	var j uint32
 	for i, val := range test_str {
 		j = uint32(i)
-		cot[i] = Tstr{val, j + 1, 8 * (j + 1)}
-		ok := mi.MIADDPostingList(val, j+1, 8*(j+1))
+
+		ok := mi.MIADDPostingList(val, (j+1)%5, 2*(j+1))
 		if !ok {
 			t.Error("MIADDPostingList failure!")
 		}
 	}
 
 	query := []string{
+		"chao",
 		"hao",
 	}
 
@@ -63,18 +59,25 @@ func TestMDX(t *testing.T) {
 	for i := 0; i < int(Hnum); i++ {
 		hkv := htiter.HTIteratorGet()
 		fmt.Printf("key:%v\n", hkv.HTKeyValueGetKey())
+		htiter.HTIteratorNext()
 	}
 	// mistake in MIADDPostingL
 
 	///////
 	ll := mi.MIProcessQuery(query)
 
-	iter, _ := ll.LLMakeIterator()
+	if ll == nil {
+		fmt.Println("not match")
+	} else {
 
-	llen := ll.Len()
-	for i := uint32(0); i < llen; i++ {
-		payload, _ := iter.LLIteratorGetPayload()
-		ret, _ := (payload).(*SearchResult)
-		fmt.Printf("id:%v rank:%v\n", ret.docid, ret.rank)
+		iter, _ := ll.LLMakeIterator()
+
+		llen := ll.Len()
+		for i := uint32(0); i < llen; i++ {
+			payload, _ := iter.LLIteratorGetPayload()
+			ret, _ := (payload).(*SearchResult)
+			fmt.Printf("id:%v rank:%v\n", ret.docid, ret.rank)
+			iter.LLIteratorNext()
+		}
 	}
 }
