@@ -7,6 +7,7 @@ import (
 )
 
 /*  this package mainly intend to build such a structure: inverted hashtable
+*   --using function MIADDPostingList()
 *
 *                  MemIndex(HashTable)
 *     --------------------------------------
@@ -23,7 +24,8 @@ import (
 *
 *
 *
-*
+*   fucntion MIProcessQuery(): serve as a api to deal with user's query
+*	and return a linkedlist with results (SearchResult struct for each node)
 *
 *
 *	the toughest one !
@@ -43,6 +45,9 @@ type SearchResult struct {
 	docid uint32
 	rank  uint32
 }
+
+func (s *SearchResult) SRGetRank() uint32 { return s.rank }
+func (s *SearchResult) SRGetID() uint32   { return s.docid }
 
 func AllocateMemIndex() *MemIndex {
 	mi := HT.AllocateHashTable(128)
@@ -194,10 +199,13 @@ func (mi *MemIndex) MIProcessQuery(query []string) *LL.LinkedList {
 
 	// We may Sort
 	retlist.SortLinkedList(false, func(a, b interface{}) bool {
-		acta, _ := a.(*SearchResult)
-		actb, _ := b.(*SearchResult)
+		acta, aok := a.(*SearchResult)
+		actb, bok := b.(*SearchResult)
+		if aok && bok {
+			return acta.rank >= actb.rank
+		}
 
-		return acta.rank > actb.rank
+		return false
 	})
 
 	return retlist

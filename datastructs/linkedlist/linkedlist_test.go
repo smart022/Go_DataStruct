@@ -26,7 +26,7 @@ func TestLinkedlist(t *testing.T) {
 	}
 
 	// interface{} type convert assert!!
-	l.SortLinkedList(true, func(a, b vtype) bool {
+	l.SortLinkedList(true, func(a, b interface{}) bool {
 		aval, a_ok := a.(uint32)
 		bval, b_ok := b.(uint32)
 		if a_ok && b_ok {
@@ -131,4 +131,48 @@ func TestIterator(t *testing.T) {
 	if _, ok := iter3.LLIteratorDelete(); ok == nil {
 		t.Errorf("LLIteratorDelete error2!!")
 	}
+}
+
+func TestSort(t *testing.T) {
+
+	type teststc struct {
+		id   uint32
+		rank uint32
+	}
+
+	NUM := uint32(40)
+	l := AllocateLinkedList()
+	for i := uint32(0); i < NUM; i++ {
+		adding := new(teststc)
+		adding.id = i
+		adding.rank = rand.Uint32()
+
+		l.Append(adding)
+
+	}
+
+	cur_node := l.head
+
+	for i := uint32(0); i < NUM; i++ {
+		fmt.Printf("%2v %T:%v\n", i, cur_node.val, cur_node.val)
+		cur_node = cur_node.next
+	}
+	fmt.Println()
+	l.SortLinkedList(false, func(a, b interface{}) bool {
+		acta, aok := a.(*teststc)
+		actb, bok := b.(*teststc)
+		if aok && bok {
+			return acta.rank > actb.rank
+		}
+
+		return false
+	})
+
+	cur_node = l.head
+
+	for i := uint32(0); i < NUM; i++ {
+		fmt.Printf("%2v %T:%v\n", i, cur_node.val, cur_node.val)
+		cur_node = cur_node.next
+	}
+
 }

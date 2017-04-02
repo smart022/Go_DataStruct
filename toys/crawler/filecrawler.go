@@ -11,7 +11,13 @@ import (
 	"path/filepath"
 )
 
-// main function, still lack of MemIndex
+/*
+*	This package created a Function making use of the other three packegs, which allows u
+*   walk through a specific directory reading all the files and finally output 2 structures
+*	that contain some detail of this directory.
+ */
+
+// main function
 func CrawlFileTree(rootdir string) (*DT.DocTable, *MI.MemIndex) {
 	path := rootdir
 	doctable := DT.AllocateDocTable()
